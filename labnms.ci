@@ -32,6 +32,10 @@ write_files:
     content: W2xhYnNydl0KbGFic3J2WzE6M10=
 runcmd:
   - pip3 install ansible
+  - chown -R ansible:ansible /home/ansible
+
+runcmd:
+  - pip3 install ansible
   - cp -r /root/ansible /home && rm -r /root/ansible && chown -R ansible:ansible /home/ansible
 power_state:
   mode: reboot

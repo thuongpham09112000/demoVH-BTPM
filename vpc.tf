@@ -1,4 +1,4 @@
-resource "aws_vpc" "VPC_LAB" {
+resource "aws_vpc" "LabVpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = "true"
   enable_dns_hostnames = "true"
@@ -6,28 +6,28 @@ resource "aws_vpc" "VPC_LAB" {
   instance_tenancy     = "default"
 
   tags = {
-    Name = "VPC_LAB"
+    Name = "LabVpc"
   }
 }
 
-resource "aws_vpc_dhcp_options" "DHCP_LAB" {
+resource "aws_vpc_dhcp_options" "LabDhcp" {
   domain_name         = "lab"
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags = {
-    Name = "DHCP_LAB"
+    Name = "LabDhcp"
   }
 }
 
-resource "aws_vpc_dhcp_options_association" "DHCP_LAB" {
-  vpc_id          = aws_vpc.VPC_LAB.id
-  dhcp_options_id = aws_vpc_dhcp_options.DHCP_LAB.id
+resource "aws_vpc_dhcp_options_association" "LabDhcp" {
+  vpc_id          = aws_vpc.LabVpc.id
+  dhcp_options_id = aws_vpc_dhcp_options.LabDhcp.id
 }
 
-resource "aws_security_group" "SG_LAB_PUB" {
-  name        = "SG_LAB_PUB"
-  description = "Allow inbound LAB traffic, SSH taffic from Internet  and all outbound traffic"
-  vpc_id      = aws_vpc.VPC_LAB.id
+resource "aws_security_group" "LabSecGrpPub" {
+  name        = "LabSecGrpPub"
+  description = "Allow inbound Lab traffic, SSH taffic from Internet  and all outbound traffic"
+  vpc_id      = aws_vpc.LabVpc.id
 
   ingress {
     from_port   = 22
@@ -51,14 +51,14 @@ resource "aws_security_group" "SG_LAB_PUB" {
   }
 
   tags = {
-    Name = "SG_LAB_PUB"
+    Name = "LabSecGrpPub"
   }
 }
 
-resource "aws_security_group" "SG_LAB_PRV" {
-  name        = "SG_LAB_PRV"
-  description = "Allow only inbound LAB traffic and all outbound traffic"
-  vpc_id      = aws_vpc.VPC_LAB.id
+resource "aws_security_group" "LabSecGrpPrv" {
+  name        = "LabSecGrpPrv"
+  description = "Allow only inbound Lab traffic and all outbound traffic"
+  vpc_id      = aws_vpc.LabVpc.id
 
   ingress {
     from_port   = 0
@@ -75,90 +75,90 @@ resource "aws_security_group" "SG_LAB_PRV" {
   }
 
   tags = {
-    Name = "SG_LAB_PRV"
+    Name = "LabSecGrpPrv"
   }
 }
 
-resource "aws_subnet" "NET_LAB_PUB-A" {
-  vpc_id                  = aws_vpc.VPC_LAB.id
+resource "aws_subnet" "LabNetPubA" {
+  vpc_id                  = aws_vpc.LabVpc.id
   cidr_block              = "10.0.10.0/24"
   map_public_ip_on_launch = "true"
   availability_zone       = format("%s%s", var.AWS_REGION, "a")
 
   tags = {
-    Name = "NET_LAB_PUB-A"
+    Name = "LabNetPubA"
   }
 }
 
-resource "aws_subnet" "NET_LAB_PRV-A" {
-  vpc_id                  = aws_vpc.VPC_LAB.id
+resource "aws_subnet" "LabNetPrvA" {
+  vpc_id                  = aws_vpc.LabVpc.id
   cidr_block              = "10.0.11.0/24"
   map_public_ip_on_launch = "false"
   availability_zone       = format("%s%s", var.AWS_REGION, "a")
 
   tags = {
-    Name = "NET_LAB_PRV-A"
+    Name = "LabNetPrvA"
   }
 }
 
-resource "aws_internet_gateway" "IG_LAB" {
-  vpc_id = aws_vpc.VPC_LAB.id
+resource "aws_internet_gateway" "LabInetGw" {
+  vpc_id = aws_vpc.LabVpc.id
 
   tags = {
-    Name = "IG_LAB"
+    Name = "LabInetGw"
   }
 }
 
-resource "aws_eip" "EIP_LAB_PUB-A_NG" {
+resource "aws_eip" "LabEipNatGwPubA" {
   vpc = true
 
   tags = {
-    Name = "EIP_LAB_PUB-A_NG"
+    Name = "LabEipNatGwPubA"
   }
 }
 
-resource "aws_nat_gateway" "NG_LAB_PUB-A" {
-  allocation_id = aws_eip.EIP_LAB_PUB-A_NG.id
-  subnet_id     = aws_subnet.NET_LAB_PUB-A.id
+resource "aws_nat_gateway" "LabNatGwPubA" {
+  allocation_id = aws_eip.LabEipNatGwPubA.id
+  subnet_id     = aws_subnet.LabNetPubA.id
 
   tags = {
-    Name = "NG_LAB_PUB-A"
+    Name = "LabNatGwPubA"
   }
 }
 
-resource "aws_route_table" "RT_LAB_PUB-A" {
-  vpc_id = aws_vpc.VPC_LAB.id
+resource "aws_route_table" "LabRouteTablePubA" {
+  vpc_id = aws_vpc.LabVpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.IG_LAB.id
+    gateway_id = aws_internet_gateway.LabInetGw.id
   }
 
   tags = {
-    Name = "RT_LAB_PUB-A"
+    Name = "LabRouteTablePubA"
   }
 }
 
-resource "aws_route_table_association" "RT_LAB_PUB-A" {
-  subnet_id      = aws_subnet.NET_LAB_PUB-A.id
-  route_table_id = aws_route_table.RT_LAB_PUB-A.id
+resource "aws_route_table_association" "LabRouteTablePubA" {
+  subnet_id      = aws_subnet.LabNetPubA.id
+  route_table_id = aws_route_table.LabRouteTablePubA.id
 }
 
-resource "aws_route_table" "RT_LAB_PRV-A" {
-  vpc_id           = aws_vpc.VPC_LAB.id
+resource "aws_route_table" "LabRouteTablePrvA" {
+  vpc_id           = aws_vpc.LabVpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.NG_LAB_PUB-A.id
+    nat_gateway_id = aws_nat_gateway.LabNatGwPubA.id
   }
 
   tags = {
-    Name = "RT_LAB_PRV-A"
+    Name = "LabRouteTablePrvA"
   }
 }
 
-resource "aws_route_table_association" "RT_LAB_PRV-A" {
-  subnet_id      = aws_subnet.NET_LAB_PRV-A.id
-  route_table_id = aws_route_table.RT_LAB_PRV-A.id
+resource "aws_route_table_association" "LabRouteTablePrvA" {
+  subnet_id      = aws_subnet.LabNetPrvA.id
+  route_table_id = aws_route_table.LabRouteTablePrvA.id
 }
 
