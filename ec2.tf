@@ -11,12 +11,20 @@ resource "aws_instance" "LabEc2-labnms" {
   }
 }
 
-resource "aws_route53_record" "LabR53RecA-labnms" {
-  zone_id = aws_route53_zone.LabR53Zone.zone_id
+resource "aws_route53_record" "LabLocalR53RecA-labnms" {
+  zone_id = aws_route53_zone.LabLocalR53Zone.zone_id
   name    = "labnms"
   type    = "A"
   ttl     = "300"
   records = [aws_instance.LabEc2-labnms.private_ip]
+}
+
+resource "aws_route53_record" "AutomataGuruR53RecA-labnms" {
+  zone_id = data.aws_route53_zone.AutomataGuruR53Zone.zone_id
+  name    = "labnms"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_instance.LabEc2-labnms.public_ip]
 }
 
 variable "ServerCount" {
@@ -36,9 +44,9 @@ resource "aws_instance" "LabEc2-labsrv" {
   }
 }
 
-resource "aws_route53_record" "LabR53RecA-labsrv" {
+resource "aws_route53_record" "LabLocalR53RecA-labsrv" {
   count   = var.ServerCount
-  zone_id = aws_route53_zone.LabR53Zone.zone_id
+  zone_id = aws_route53_zone.LabLocalR53Zone.zone_id
   name    = "labsrv${count.index + 1}"
   type    = "A"
   ttl     = "300"
