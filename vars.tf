@@ -2,6 +2,10 @@ variable "AWS_REGION" {
   default = "us-east-1"
 }
 
+variable "availability_zones" {
+  default = ["a", "b", "c"]
+}
+
 variable "AMI_UBUNTU" {
   type = map
 

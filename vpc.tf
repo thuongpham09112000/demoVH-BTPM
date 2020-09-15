@@ -19,6 +19,14 @@ resource "aws_vpc_dhcp_options" "LabDhcp" {
   }
 }
 
+resource "aws_internet_gateway" "LabInetGw" {
+  vpc_id = aws_vpc.LabVpc.id
+
+  tags = {
+    Name = "LabInetGw"
+  }
+}
+
 resource "aws_vpc_dhcp_options_association" "LabDhcp" {
   vpc_id          = aws_vpc.LabVpc.id
   dhcp_options_id = aws_vpc_dhcp_options.LabDhcp.id
@@ -28,13 +36,6 @@ resource "aws_security_group" "LabSecGrpPub" {
   name        = "LabSecGrpPub"
   description = "Allow inbound Lab traffic, SSH taffic from Internet  and all outbound traffic"
   vpc_id      = aws_vpc.LabVpc.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   ingress {
     from_port   = 0
@@ -79,132 +80,51 @@ resource "aws_security_group" "LabSecGrpPrv" {
   }
 }
 
-resource "aws_subnet" "LabNetPubA" {
+resource "aws_subnet" "LabNetPub" {
+  count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.10.0/24"
+  cidr_block              = "10.0.${count.index + 1}0.0/24"
   map_public_ip_on_launch = "true"
-  availability_zone       = format("%s%s", var.AWS_REGION, "a")
+  availability_zone       = format("%s%s", var.AWS_REGION, var.availability_zones[count.index % length(var.availability_zones)])
 
   tags = {
-    Name = "LabNetPubA"
+    Name = "LabNetPub${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_subnet" "LabNetPubB" {
+resource "aws_subnet" "LabNetPrv" {
+  count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.20.0/24"
-  map_public_ip_on_launch = "true"
-  availability_zone       = format("%s%s", var.AWS_REGION, "b")
-
-  tags = {
-    Name = "LabNetPubB"
-  }
-}
-
-resource "aws_subnet" "LabNetPubC" {
-  vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.30.0/24"
-  map_public_ip_on_launch = "true"
-  availability_zone       = format("%s%s", var.AWS_REGION, "c")
-
-  tags = {
-    Name = "LabNetPubC"
-  }
-}
-
-resource "aws_subnet" "LabNetPrvA" {
-  vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.11.0/24"
+  cidr_block              = "10.0.${count.index + 1}1.0/24"
   map_public_ip_on_launch = "false"
-  availability_zone       = format("%s%s", var.AWS_REGION, "a")
+  availability_zone       = format("%s%s", var.AWS_REGION, var.availability_zones[count.index % length(var.availability_zones)])
 
   tags = {
-    Name = "LabNetPrvA"
+    Name = "LabNetPub${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_subnet" "LabNetPrvB" {
-  vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.21.0/24"
-  map_public_ip_on_launch = "false"
-  availability_zone       = format("%s%s", var.AWS_REGION, "b")
+resource "aws_eip" "LabEipNatGwPub" {
+  count = length(var.availability_zones)
+  vpc   = true
 
   tags = {
-    Name = "LabNetPrvB"
+    Name = "LabEipNatGwPub${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_subnet" "LabNetPrvC" {
-  vpc_id                  = aws_vpc.LabVpc.id
-  cidr_block              = "10.0.31.0/24"
-  map_public_ip_on_launch = "false"
-  availability_zone       = format("%s%s", var.AWS_REGION, "c")
+resource "aws_nat_gateway" "LabNatGwPub" {
+  count         = length(var.availability_zones)
+  allocation_id = aws_eip.LabEipNatGwPub[count.index].id
+  subnet_id     = aws_subnet.LabNetPub[count.index].id
 
   tags = {
-    Name = "LabNetPrvC"
+    Name = "LabNatGwPub${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_internet_gateway" "LabInetGw" {
-  vpc_id = aws_vpc.LabVpc.id
-
-  tags = {
-    Name = "LabInetGw"
-  }
-}
-
-resource "aws_eip" "LabEipNatGwPubA" {
-  vpc = true
-
-  tags = {
-    Name = "LabEipNatGwPubA"
-  }
-}
-
-resource "aws_nat_gateway" "LabNatGwPubA" {
-  allocation_id = aws_eip.LabEipNatGwPubA.id
-  subnet_id     = aws_subnet.LabNetPubA.id
-
-  tags = {
-    Name = "LabNatGwPubA"
-  }
-}
-
-resource "aws_eip" "LabEipNatGwPubB" {
-  vpc = true
-
-  tags = {
-    Name = "LabEipNatGwPubB"
-  }
-}
-
-resource "aws_nat_gateway" "LabNatGwPubB" {
-  allocation_id = aws_eip.LabEipNatGwPubB.id
-  subnet_id     = aws_subnet.LabNetPubB.id
-
-  tags = {
-    Name = "LabNatGwPubB"
-  }
-}
-
-resource "aws_eip" "LabEipNatGwPubC" {
-  vpc = true
-
-  tags = {
-    Name = "LabEipNatGwPubC"
-  }
-}
-
-resource "aws_nat_gateway" "LabNatGwPubC" {
-  allocation_id = aws_eip.LabEipNatGwPubC.id
-  subnet_id     = aws_subnet.LabNetPubC.id
-
-  tags = {
-    Name = "LabNatGwPubC"
-  }
-}
-
-resource "aws_route_table" "LabRouteTablePubA" {
+resource "aws_route_table" "LabRouteTablePub" {
+  count  = length(var.availability_zones)
   vpc_id = aws_vpc.LabVpc.id
 
   route {
@@ -213,102 +133,32 @@ resource "aws_route_table" "LabRouteTablePubA" {
   }
 
   tags = {
-    Name = "LabRouteTablePubA"
+    Name = "LabRouteTablePub${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_route_table_association" "LabRouteTablePubA" {
-  subnet_id      = aws_subnet.LabNetPubA.id
-  route_table_id = aws_route_table.LabRouteTablePubA.id
+resource "aws_route_table_association" "LabRouteTablePub" {
+  count          = length(var.availability_zones)
+  subnet_id      = aws_subnet.LabNetPub[count.index].id
+  route_table_id = aws_route_table.LabRouteTablePub[count.index].id
 }
 
-resource "aws_route_table" "LabRouteTablePubB" {
-  vpc_id = aws_vpc.LabVpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.LabInetGw.id
-  }
-
-  tags = {
-    Name = "LabRouteTablePubB"
-  }
-}
-
-resource "aws_route_table_association" "LabRouteTablePubB" {
-  subnet_id      = aws_subnet.LabNetPubB.id
-  route_table_id = aws_route_table.LabRouteTablePubB.id
-}
-
-resource "aws_route_table" "LabRouteTablePubC" {
-  vpc_id = aws_vpc.LabVpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.LabInetGw.id
-  }
-
-  tags = {
-    Name = "LabRouteTablePubC"
-  }
-}
-
-resource "aws_route_table_association" "LabRouteTablePubC" {
-  subnet_id      = aws_subnet.LabNetPubC.id
-  route_table_id = aws_route_table.LabRouteTablePubC.id
-}
-
-resource "aws_route_table" "LabRouteTablePrvA" {
+resource "aws_route_table" "LabRouteTablePrv" {
+  count            = length(var.availability_zones)
   vpc_id           = aws_vpc.LabVpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.LabNatGwPubA.id
+    nat_gateway_id = aws_nat_gateway.LabNatGwPub[count.index].id
   }
 
   tags = {
-    Name = "LabRouteTablePrvA"
+    Name = "LabRouteTablePrv${upper(var.availability_zones[count.index])}"
   }
 }
 
-resource "aws_route_table_association" "LabRouteTablePrvA" {
-  subnet_id      = aws_subnet.LabNetPrvA.id
-  route_table_id = aws_route_table.LabRouteTablePrvA.id
+resource "aws_route_table_association" "LabRouteTablePrv" {
+  count          = length(var.availability_zones)
+  subnet_id      = aws_subnet.LabNetPrv[count.index].id
+  route_table_id = aws_route_table.LabRouteTablePrv[count.index].id
 }
-
-resource "aws_route_table" "LabRouteTablePrvB" {
-  vpc_id           = aws_vpc.LabVpc.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.LabNatGwPubB.id
-  }
-
-  tags = {
-    Name = "LabRouteTablePrvB"
-  }
-}
-
-resource "aws_route_table_association" "LabRouteTablePrvB" {
-  subnet_id      = aws_subnet.LabNetPrvB.id
-  route_table_id = aws_route_table.LabRouteTablePrvB.id
-}
-
-resource "aws_route_table" "LabRouteTablePrvC" {
-  vpc_id           = aws_vpc.LabVpc.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.LabNatGwPubC.id
-  }
-
-  tags = {
-    Name = "LabRouteTablePrvC"
-  }
-}
-
-resource "aws_route_table_association" "LabRouteTablePrvC" {
-  subnet_id      = aws_subnet.LabNetPrvC.id
-  route_table_id = aws_route_table.LabRouteTablePrvC.id
-}
-

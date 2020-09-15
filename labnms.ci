@@ -24,16 +24,19 @@ write_files:
     content: c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFESFAvc3ZOaG41a3JKVVd5UjdvRjVFbFQ4RC9GMGplSW9PU20xTEVsWnFhclh5d0lzRVpmb2RsQXBycHZyRFFlWHRGR01KbXNvdURNYmpXM1c1ZVNQQkxaRmgrWHIzUnQ2bXh3dStqTnQvOVkrZHBOdUtPQXRzd0IrNHFOYWM2SlFvUnhKeFJ5WUx3MnY0TzVteno1Y2ErQU1rZUpkLzB3SDlCRFpDcERiOFZnMS81N3I5ekxNYitQUW4xZzU1NW1EcGYwVk4vS3YrVzBMUjROUW9VNm5oQU5NNmhOQitwWU90TzZsR1kyZnV4Nmc3ZXUvTklkTktCK1Fac2JpMm1ZSThRUkM4dERoU2NQaGlZR0xJQ3FaMGhtdERMOC9NaXVGTHV2YXBDSHdYOGZWZlpSZE5sYjNiK1ZqYU8zTitlWVhrR3hqQjE3ejhIMkVyVWxLR3dWY2ogYW5zaWJsZUBsYWJubXM=
   - path: /root/ansible/ansible.cfg
     permissions: '0644'
-    encoding: b64
-    content: W2RlZmF1bHRzXQppbnZlbnRvcnk9Li9ob3N0cwpyZW1vdGVfdXNlcj1hbnNpYmxlCnByaXZhdGVfa2V5X2ZpbGU9fi8uc3NoL2lkX3JzYQpob3N0X2tleV9jaGVja2luZz1GYWxzZQ==
+    content: |
+      [defaults]
+      inventory=./hosts
+      remote_user=ansible
+      private_key_file=~/.ssh/id_rsa
+      host_key_checking = False
   - path: /root/ansible/hosts
     permissions: '0644'
-    encoding: b64
-    content: W2xhYnNydl0KbGFic3J2WzE6M10=
-runcmd:
-  - pip3 install ansible
-  - chown -R ansible:ansible /home/ansible
-
+    content: |
+      [labpub]
+      labpub[1:3]
+      [labprv]
+      labprv[1:3]
 runcmd:
   - pip3 install ansible
   - cp -r /root/ansible /home && rm -r /root/ansible && chown -R ansible:ansible /home/ansible
