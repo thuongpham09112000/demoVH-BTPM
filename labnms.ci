@@ -33,10 +33,12 @@ write_files:
   - path: /root/ansible/hosts
     permissions: '0644'
     content: |
-      [labpub]
-      labpub[1:3]
-      [labprv]
-      labprv[1:3]
+      [web]
+      labweb[1:3]
+      [app]
+      labapp[1:3]
+      [db]
+      labdb[1:3]
 runcmd:
   - pip3 install ansible
   - cp -r /root/ansible /home && rm -r /root/ansible && chown -R ansible:ansible /home/ansible
