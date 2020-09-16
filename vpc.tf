@@ -147,3 +147,143 @@ resource "aws_route_table_association" "LabRouteTablePrv2" {
   route_table_id = aws_route_table.LabRouteTablePrv2[count.index].id
 }
 
+resource "aws_network_acl" "LabAclPub" {
+  count      = length(var.availability_zones)
+  vpc_id     = aws_vpc.LabVpc.id
+  subnet_ids = [aws_subnet.LabNetPub[count.index].id]
+
+  egress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "0.0.0.0/0"
+  }
+
+  ingress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "10.0.0.0/8"
+  }
+
+  ingress {
+    rule_no    = 110
+    action     = "allow"
+    protocol   = "tcp"
+    from_port  = 22
+    to_port    = 22
+    cidr_block = "0.0.0.0/0"
+  }
+  
+  ingress {
+    rule_no    = 120
+    action     = "allow"
+    protocol   = "tcp"
+    from_port  = 80
+    to_port    = 80
+    cidr_block = "0.0.0.0/0"
+  }
+
+  ingress {
+    rule_no    = 130
+    action     = "allow"
+    protocol   = "tcp"
+    from_port  = 443
+    to_port    = 443
+    cidr_block = "0.0.0.0/0"
+  }
+
+  ingress {
+    rule_no    = 170
+    action     = "allow"
+    protocol   = "icmp"
+    from_port  = 0
+    to_port    = 0
+    icmp_type  = -1
+    icmp_code  = -1
+    cidr_block = "0.0.0.0/0"
+  }
+
+  ingress {
+    rule_no    = 180
+    action     = "allow"
+    protocol   = "tcp"
+    from_port  = 1024
+    to_port    = 65535
+    cidr_block = "0.0.0.0/0"
+  }
+
+  ingress {
+    rule_no    = 190
+    action     = "allow"
+    protocol   = "udp"
+    from_port  = 1024
+    to_port    = 65535
+    cidr_block = "0.0.0.0/0"
+  }
+
+  tags = {
+    Name = "LabAclPub${upper(var.availability_zones[count.index])}"
+  }
+}
+
+resource "aws_network_acl" "LabAclPrv1" {
+  count      = length(var.availability_zones)
+  vpc_id     = aws_vpc.LabVpc.id
+  subnet_ids = [aws_subnet.LabNetPrv1[count.index].id]
+  
+  egress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "0.0.0.0/0"
+  }
+  
+  ingress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "0.0.0.0/0"
+  }
+
+  tags = {
+    Name = "LabAclPrv1${upper(var.availability_zones[count.index])}"
+  }
+}
+
+resource "aws_network_acl" "LabAclPrv2" {
+  count      = length(var.availability_zones)
+  vpc_id     = aws_vpc.LabVpc.id
+  subnet_ids = [aws_subnet.LabNetPrv2[count.index].id]
+ 
+  egress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "0.0.0.0/0"
+  }
+ 
+  ingress {
+    rule_no    = 100
+    action     = "allow"
+    protocol   = -1
+    from_port  = 0
+    to_port    = 0
+    cidr_block = "0.0.0.0/0"
+  }
+
+  tags = {
+    Name = "LabAclPrv2${upper(var.availability_zones[count.index])}"
+  }
+}
+
