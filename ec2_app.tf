@@ -1,29 +1,28 @@
-resource "aws_instance" "LabEc2-labapp" {
+resource "aws_instance" "Vpc01_Ec2-app" {
   count                  = length(var.availability_zones)
   ami                    = lookup(var.AMI_UBUNTU, var.AWS_REGION)
   instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.LabNetPrv1[count.index % length(var.availability_zones)].id
-  vpc_security_group_ids = [aws_security_group.LabSecGrpPrv1-labapp.id]
-  user_data_base64       = base64gzip(templatefile("labsrv.ci", { hostname = "labapp${count.index + 1}" }))
+  subnet_id              = aws_subnet.Vpc01_NetPrv1[count.index % length(var.availability_zones)].id
+  vpc_security_group_ids = [aws_security_group.Vpc01_SecGrpPrv1-app.id]
+  user_data_base64       = base64gzip(templatefile("srv.ci", { hostname = "app${count.index + 1}" }))
 
   tags = {
-    Name = "LabEc2-labapp${count.index + 1}"
+    Name = "${var.Vpc01}Ec2-app${count.index + 1}"
   }
 }
 
-resource "aws_route53_record" "LabLocalR53RecA-labapp" {
+resource "aws_route53_record" "R53RecA-Vpc01_local-app" {
   count   = length(var.availability_zones)
-  zone_id = aws_route53_zone.LabLocalR53Zone.zone_id
-  name    = "labapp${count.index + 1}"
+  zone_id = aws_route53_zone.R53Zone-Vpc01_local.zone_id
+  name    = "app${count.index + 1}"
   type    = "A"
   ttl     = "300"
-  records = [aws_instance.LabEc2-labapp[count.index].private_ip]
+  records = [aws_instance.Vpc01_Ec2-app[count.index].private_ip]
 }
 
-resource "aws_security_group" "LabSecGrpPrv1-labapp" {
-  name        = "LabSecGrpPrv1-labapp"
-  description = "Allow only inbound Lab traffic and all outbound traffic"
-  vpc_id      = aws_vpc.LabVpc.id
+resource "aws_security_group" "Vpc01_SecGrpPrv1-app" {
+  name        = "Vpc01_SecGrpPrv1-app"
+  vpc_id      = aws_vpc.Vpc01_Vpc.id
 
   ingress {
     from_port   = 0
@@ -40,6 +39,6 @@ resource "aws_security_group" "LabSecGrpPrv1-labapp" {
   }
 
   tags = {
-    Name = "LabSecGrpPrv1-labapp"
+    Name = "${var.Vpc01}SecGrpPrv1-app"
   }
 }

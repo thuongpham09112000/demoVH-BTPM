@@ -1,35 +1,35 @@
-resource "aws_instance" "LabEc2-labnms" {
+resource "aws_instance" "Vpc01_Ec2-nms" {
   ami                    = lookup(var.AMI_UBUNTU, var.AWS_REGION)
   instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.LabNetPub[0].id
-  vpc_security_group_ids = [aws_security_group.LabSecGrpPub-labnms.id]
+  subnet_id              = aws_subnet.Vpc01_NetPub[0].id
+  vpc_security_group_ids = [aws_security_group.Vpc01_SecGrpPub-nms.id]
   private_ip             = "10.0.10.254"
-  user_data_base64       = base64gzip(templatefile("labnms.ci", { hostname = "labnms" }))
+  user_data_base64       = base64gzip(templatefile("nms.ci", { hostname = "nms" }))
 
   tags = {
-    Name = "LabEc2-labnms"
+    Name = "${var.Vpc01}Ec2-nms"
   }
 }
 
-resource "aws_route53_record" "LabLocalR53RecA-labnms" {
-  zone_id = aws_route53_zone.LabLocalR53Zone.zone_id
-  name    = "labnms"
+resource "aws_route53_record" "R53RecA-Vpc01_local-nms" {
+  zone_id = aws_route53_zone.R53Zone-Vpc01_local.zone_id
+  name    = "nms"
   type    = "A"
   ttl     = "300"
-  records = [aws_instance.LabEc2-labnms.private_ip]
+  records = [aws_instance.Vpc01_Ec2-nms.private_ip]
 }
 
-resource "aws_route53_record" "AutomataGuruR53RecA-labnms" {
-  zone_id = data.aws_route53_zone.AutomataGuruR53Zone.zone_id
-  name    = "labnms"
+resource "aws_route53_record" "R53RecA-automata_guru-nms" {
+  zone_id = data.aws_route53_zone.R53Zone-automata_guru.zone_id
+  name    = "nms"
   type    = "A"
   ttl     = "300"
-  records = [aws_instance.LabEc2-labnms.public_ip]
+  records = [aws_instance.Vpc01_Ec2-nms.public_ip]
 }
 
-resource "aws_security_group" "LabSecGrpPub-labnms" {
-  name        = "LabSecGrpPub-labnms"
-  vpc_id      = aws_vpc.LabVpc.id
+resource "aws_security_group" "Vpc01_SecGrpPub-nms" {
+  name        = "${var.Vpc01}SecGrpPub-nms"
+  vpc_id      = aws_vpc.Vpc01_Vpc.id
 
   ingress {
     from_port   = 8
@@ -60,6 +60,6 @@ resource "aws_security_group" "LabSecGrpPub-labnms" {
   }
 
   tags = {
-    Name = "LabSecGrpPub-labnms"
+    Name = "${var.Vpc01}SecGrpPub-nms"
   }
 }

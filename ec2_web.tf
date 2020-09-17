@@ -1,37 +1,37 @@
-resource "aws_instance" "LabEc2-labweb" {
+resource "aws_instance" "Vpc01_Ec2-web" {
   count                  = length(var.availability_zones)
   ami                    = lookup(var.AMI_UBUNTU, var.AWS_REGION)
   instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.LabNetPub[count.index % length(var.availability_zones)].id
-  vpc_security_group_ids = [aws_security_group.LabSecGrpPub-labweb.id]
-  user_data_base64       = base64gzip(templatefile("labsrv.ci", { hostname = "labweb${count.index + 1}" }))
+  subnet_id              = aws_subnet.Vpc01_NetPub[count.index % length(var.availability_zones)].id
+  vpc_security_group_ids = [aws_security_group.Vpc01_SecGrpPub-web.id]
+  user_data_base64       = base64gzip(templatefile("srv.ci", { hostname = "web${count.index + 1}" }))
 
   tags = {
-    Name = "LabEc2-labweb${count.index + 1}"
+    Name = "${var.Vpc01}Ec2-web${count.index + 1}"
   }
 }
 
-resource "aws_route53_record" "LabLocalR53RecA-labweb" {
+resource "aws_route53_record" "R53RecA-Vpc01_local-web" {
   count   = length(var.availability_zones)
-  zone_id = aws_route53_zone.LabLocalR53Zone.zone_id
-  name    = "labweb${count.index + 1}"
+  zone_id = aws_route53_zone.R53Zone-Vpc01_local.zone_id
+  name    = "web${count.index + 1}"
   type    = "A"
   ttl     = "300"
-  records = [aws_instance.LabEc2-labweb[count.index].private_ip]
+  records = [aws_instance.Vpc01_Ec2-web[count.index].private_ip]
 }
 
-resource "aws_route53_record" "AutomataGuruR53RecA-labweb" {
+resource "aws_route53_record" "R53RecA-automata_guru-web" {
   count   = length(var.availability_zones)
-  zone_id = data.aws_route53_zone.AutomataGuruR53Zone.zone_id
-  name    = "labweb${count.index + 1}"
+  zone_id = data.aws_route53_zone.R53Zone-automata_guru.zone_id
+  name    = "web${count.index + 1}"
   type    = "A"
   ttl     = "300"
-  records = [aws_instance.LabEc2-labweb[count.index].public_ip]
+  records = [aws_instance.Vpc01_Ec2-web[count.index].public_ip]
 }
 
-resource "aws_security_group" "LabSecGrpPub-labweb" {
-  name        = "LabSecGrpPub-labweb"
-  vpc_id      = aws_vpc.LabVpc.id
+resource "aws_security_group" "Vpc01_SecGrpPub-web" {
+  name        = "${var.Vpc01}SecGrpPub-web"
+  vpc_id      = aws_vpc.Vpc01_Vpc.id
 
   ingress {
     from_port   = 8
@@ -62,6 +62,6 @@ resource "aws_security_group" "LabSecGrpPub-labweb" {
   }
 
   tags = {
-    Name = "LabSecGrpPub-labweb"
+    Name = "${var.Vpc01}SecGrpPub-web"
   }
 }

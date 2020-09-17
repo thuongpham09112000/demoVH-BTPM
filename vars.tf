@@ -1,3 +1,7 @@
+variable "Vpc01" {
+  default = "Lab"
+}
+
 variable "AWS_REGION" {
   default = "us-east-1"
 }
