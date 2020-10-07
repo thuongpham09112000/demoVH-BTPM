@@ -1,0 +1,22 @@
+---
+- hosts: web
+  become: yes
+  tasks:
+    - name: Upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: latest
+        update_cache: yes
+    - name: Make sure Nginx is enabled and started
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+    - name: Setup index.html
+      copy:
+        dest: "/var/www/html/index.html"
+        content: "<html><h1>{{ ansible_hostname }}</h1></html>"

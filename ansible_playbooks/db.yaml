@@ -1,0 +1,8 @@
+---
+- hosts: db
+  become: yes
+  tasks:
+    - name: Upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
