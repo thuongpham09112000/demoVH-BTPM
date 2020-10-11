@@ -4,6 +4,5 @@ AWS based lab designed to be automatically deployed using Terraform. All hosts i
 
 ### Lab diagram
 ![AWS lab diagram](https://github.com/ccie18643/AWS-Terraform-Ansible-Automation-Lab/blob/master/pictures/diag01.png)
-![Azure lab diagram](https://github.com/ccie18643/Azure-PaloAlto-Automation-Lab/blob/master/pictures/diag01.png)
 
 
