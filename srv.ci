@@ -1,0 +1,17 @@
+#cloud-config
+hostname: ${hostname}
+fqdn: ${hostname}.lab.com
+package_update: true
+package_upgrade: true
+users:
+  - name: ansible
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: true
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHP/svNhn5krJUWyR7oF5ElT8D/F0jeIoOSm1LElZqarXywIsEZfodlAprpvrDQeXtFGMJmsouDMbjW3W5eSPBLZFh+Xr3Rt6mxwu+jNt/9Y+dpNuKOAtswB+4qNac6JQoRxJxRyYLw2v4O5mzz5ca+AMkeJd/0wH9BDZCpDb8Vg1/57r9zLMb+PQn1g555mDpf0VN/Kv+W0LR4NQoU6nhANM6hNB+pYOtO6lGY2fux6g7eu/NIdNKB+QZsbi2mYI8QRC8tDhScPhiYGLICqZ0hmtDL8/MiuFLuvapCHwX8fVfZRdNlb3b+VjaO3N+eYXkGxjB17z8H2ErUlKGwVcj ansible@labnms
+power_state:
+  mode: reboot
+  timeout: 10
+  condition: True
